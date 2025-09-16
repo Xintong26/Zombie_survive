@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>丧尸末日：七日准备</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+        }
+        body {
+            background-color: #000;
+            color: #fff;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            filter: grayscale(100%);
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .sidebar-section {
+            background-color: #111;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            height: fit-content;
+        }
+        .sidebar-colored {
+            filter: grayscale(0%) !important;
+        }
+        .game-section {
+            background-color: #0d1b29;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #2a4d6e;
+        }
+        h1, h2, h3 {
+            color: #fff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .stat-item {
+            background-color: #1c3b54;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        .resource-status {
+            font-size: 12px;
+            color: #0f0;
+            margin-top: 5px;
+        }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        button {
+            background-color: #2a4d6e;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .house-layout {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin: 15px 0;
+            background-color: #1c3b54;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .room {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+            border-radius: 3px;
+        }
+        .room-fortified {
+            border-color: #fff;
+        }
+        .room-barricaded {
+            border-color: #888;
+        }
+        .room-name {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .room-status {
+            font-size: 10px;
+            color: #999;
+        }
+        .event-log {
+            background-color: #1c3b54;
+            padding: 15px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #2a4d6e;
+        }
+        .event {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #2a4d6e;
+        }
+        .weibo-hot {
+            background-color: #1c3b54;
+            padding: 15px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #2a4d6e;
+            filter: grayscale(0%) !important;
+        }
+        .hot-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        .hot-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .tag-hot {
+            background-color: #ff3852;
+            color: #fff;
+        }
+        .tag-boil {
+            background-color: #ff2b2b;
+            color: #fff;
+        }
+        .tag-new {
+            background-color: #ffac38;
+            color: #fff;
+        }
+        .screen {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .ending {
+            background-color: #1c3b54;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #2a4d6e;
+        }
+        .narrative-divider {
+            width: 100%;
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .narrative-divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #fff, transparent);
+        }
+        .narrative-text {
+            display: inline-block;
+            background-color: #0d1b29;
+            padding: 0 15px;
+            position: relative;
+            z-index: 1;
+            font-style: italic;
+            color: #aaa;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #222;
+            color: #fff;
+            border: 2px solid #555;
+            padding: 20px;
+            z-index: 1000;
+            width: 300px;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .popup button {
+            margin-top: 15px;
+            padding: 8px 16px;
+        }
+        .popup-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+        .standard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .standard-table th, .standard-table td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
+        }
+        .standard-table th {
+            background-color: #1c3b54;
+        }
+        .standard-table .good {
+            color: #0f0;
+        }
+        .standard-table .excellent {
+            color: #ff0;
+        }
+        .danger {
+            color: #f00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <!-- 开始屏幕 -->
+            <div id="start-screen" class="screen active">
+                <div class="game-section">
+                    <h1>丧尸末日：七日准备</h1>
+                    
+                    <div class="narrative-divider">
+                        <span class="narrative-text">第1天 · 凌晨</span>
+                    </div>
+                    
+                    <p>你从噩梦中惊醒，冷汗浸透了睡衣。梦里那些扭曲的身影、撕心裂肺的尖叫异常真实...</p>
+                    
+                    <p>打开手机，一条加密信息弹了出来。作为信息安全员的职业本能让你迅速解码了它。</p>
+                    
+                    <p>"内部警报：代号T-7的病毒已失控，预计7天后大规模爆发，症状包括极度攻击性、皮肤溃烂..."</p>
+                    
+                    <p>你的心跳加速。这不是恶作剧——消息来源是你安插在生物实验室的老同学，三小时前发送，现在他的电话已无法接通。</p>
+                    
+                    <div class="narrative-divider">
+                        <span class="narrative-text">抉择时刻</span>
+                    </div>
+                    
+                    <p>窗外，城市依旧宁静，晨光初现。没有人知道7天后这里将变成地狱。</p>
+                    
+                    <p>你深吸一口气，意识到自己可能是少数知道真相的人。现在，你必须做出选择：是当作无事发生，还是利用这宝贵的7天时间为即将到来的末日做准备？</p>
+                    
+                    <h2>生存指南</h2>
+                    <p>1. 你有 <strong>7天时间</strong>（7个回合）为丧尸爆发做准备</p>
+                    <p>2. 每天你有 <strong>7个行动点</strong>，可以执行不同行动</p>
+                    <p>3. 你需要平衡<strong>资源收集</strong>、<strong>安全建设</strong>和<strong>情报获取</strong></p>
+                    <p>4. 注意控制<strong>暴露度</strong>，过于明显的准备会引起怀疑</p>
+                    <p>5. 你的选择将决定你在末日来临后的生存几率</p>
+                    
+                    <h3>资源准备标准</h3>
+                    <table class="standard-table">
+                        <tr>
+                            <th>资源类型</th>
+                            <th>不足</th>
+                            <th>合格</th>
+                            <th>优秀</th>
+                        </tr>
+                        <tr>
+                            <td>食物</td>
+                            <td>&lt; 50</td>
+                            <td class="good">50-80 (充足)</td>
+                            <td class="excellent">&gt; 80 (充裕)</td>
+                        </tr>
+                        <tr>
+                            <td>水</td>
+                            <td>&lt; 25</td>
+                            <td class="good">25-40 (充足)</td>
+                            <td class="excellent">&gt; 40 (充裕)</td>
+                        </tr>
+                        <tr>
+                            <td>药品</td>
+                            <td>&lt; 20</td>
+                            <td class="good">20-30 (充足)</td>
+                            <td class="excellent">&gt; 30 (充裕)</td>
+                        </tr>
+                        <tr>
+                            <td>工具</td>
+                            <td>&lt; 15</td>
+                            <td class="good">15-25 (充足)</td>
+                            <td class="excellent">&gt; 25 (充裕)</td>
+                        </tr>
+                        <tr>
+                            <td>安全等级</td>
+                            <td>&lt; 80</td>
+                            <td class="good">80-99 (尚可)</td>
+                            <td class="excellent">100 (坚固)</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="narrative-divider">
+                        <span class="narrative-text">生存开始</span>
+                    </div>
+                    
+                    <button onclick="resetGame(); showScreen('safehouse-screen')">开始生存准备</button>
+                </div>
+            </div>
+
+            <!-- 安全屋选择屏幕 -->
+            <div id="safehouse-screen" class="screen">
+                <div class="game-section">
+                    <div class="narrative-divider">
+                        <span class="narrative-text">第1天 · 早晨</span>
+                    </div>
+                    
+                    <p>你需要一个安全的避难所。查看地图后，你考虑了三个可能的地点：</p>
+                    
+                    <div class="actions">
+                        <button onclick="selectSafehouse('apartment')">市中心公寓</button>
+                        <button onclick="selectSafehouse('suburban')">郊区独栋房</button>
+                        <button onclick="selectSafehouse('rural')">乡下老宅</button>
+                    </div>
+                    
+                    <div id="safehouse-description">
+                        <p>每个地点都有不同的优势和风险。谨慎选择，这将影响你的生存几率。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 父母决定屏幕 -->
+            <div id="parents-screen" class="screen">
+                <div class="game-section">
+                    <div class="narrative-divider">
+                        <span class="narrative-text">第1天 · 中午</span>
+                    </div>
+                    
+                    <p>手机屏幕上，父母的照片让你犹豫不决。是否应该告诉他们即将到来的危机？</p>
+                    
+                    <div class="actions">
+                        <button onclick="informParents(true)">告知父母并请求帮助</button>
+                        <button onclick="informParents(false)">不告知父母，独自承担</button>
+                    </div>
+                    
+                    <div id="parents-description">
+                        <p>这个决定将影响你后续的准备效率和暴露度风险。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏主屏幕 -->
+            <div id="game-screen" class="screen">
+                <div class="game-section">
+                    <h2>第 <span id="current-day">1</span> 天 - 剩余行动点: <span id="action-points">7</span></h2>
+                    
+                    <h3>资源状态</h3>
+                    <div class="stats">
+                        <div class="stat-item">食物: <span id="food-count">0</span><div id="food-status" class="resource-status"></div></div>
+                        <div class="stat-item">水: <span id="water-count">0</span><div id="water-status" class="resource-status"></div></div>
+                        <div class="stat-item">药品: <span id="medicine-count">0</span><div id="medicine-status" class="resource-status"></div></div>
+                        <div class="stat-item">工具: <span id="tools-count">0</span><div id="tools-status" class="resource-status"></div></div>
+                        <div class="stat-item">安全等级: <span id="security-level">0</span><div id="security-status" class="resource-status"></div></div>
+                        <div class="stat-item">暴露度: <span id="exposure-level">0</span>/100</div>
+                    </div>
+
+                    <h3>今日行动</h3>
+                    <div class="actions">
+                        <button onclick="takeAction('supermarket')" id="supermarket-btn">超市采购 (1点)</button>
+                        <button onclick="takeAction('hardware')" id="hardware-btn">五金店采购 (1点)</button>
+                        <button onclick="takeAction('pharmacy')" id="pharmacy-btn">药店采购 (1点)</button>
+                        <button onclick="takeAction('fortify')" id="fortify-btn">加固安全屋 (2点)</button>
+                        <button onclick="takeAction('scavenge')" id="scavenge-btn">搜寻物资 (1点, 高风险)</button>
+                        <button onclick="takeAction('rest')" id="rest-btn">休息降低暴露度 (1点)</button>
+                        <button onclick="nextDay()" id="next-day-btn">结束今天</button>
+                    </div>
+
+                    <h3>安全屋布局</h3>
+                    <div class="house-layout" id="house-layout">
+                        <!-- 动态生成房屋布局 -->
+                    </div>
+                    
+                    
+                </div>
+            </div>
+
+            <!-- 结束屏幕 -->
+            <div id="end-screen" class="screen">
+                <div class="game-section">
+                    <h1>七日准备结束</h1>
+                    
+                    <div class="narrative-divider">
+                        <span class="narrative-text">第8天 · 黎明</span>
+                    </div>
+                    
+                    <p>远处传来警报声和尖叫声...丧尸病毒已经开始爆发！你的准备程度将决定你的生存几率。</p>
+                    
+                    <div class="ending">
+                        <h2>生存评估</h2>
+                        <div id="ending-content"></div>
+                        <button onclick="resetGame(); showScreen('start-screen')" class="restart-btn">重新开始游戏</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <!-- 生存日志 -->
+            <div class="sidebar-section">
+                <h3>生存日志</h3>
+                <div class="event-log" id="event-log">
+                    <div class="event">游戏开始！距离丧尸爆发还剩7天。</div>
+                </div>
+            </div>
+            
+            <!-- 巨厚热搜 -->
+            <div class="sidebar-section sidebar-colored">
+                <h3>巨厚热搜榜</h3>
+                <div class="weibo-hot" id="weibo-hot">
+                    <!-- 动态生成热搜内容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗容器 -->
+    <div id="popup-overlay" class="popup-overlay"></div>
+    <div id="popup-container" class="popup">
+        <div id="popup-content"></div>
+        <div class="popup-options" id="popup-options"></div>
+        <button id="popup-confirm">确定</button>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            day: 1,
+            actionPoints: 7,
+            safehouse: null,
+            informedParents: false,
+            parentsHelping: false,
+            parentsMayArrive: false,
+            food: 0,
+            water: 0,
+            medicine: 0,
+            tools: 0,
+            security: 0,
+            exposure: 0,
+            safehouseExposed: false,
+            events: [],
+            actionsTaken: [],
+            houseRooms: [
+                { name: "前门", security: 0, maxSecurity: 15 },
+                { name: "后门", security: 0, maxSecurity: 10 },
+                { name: "窗户1", security: 0, maxSecurity: 10 },
+                { name: "窗户2", security: 0, maxSecurity: 10 },
+                { name: "窗户3", security: 0, maxSecurity: 10 },
+                { name: "车库", security: 0, maxSecurity: 20 },
+                { name: "地下室", security: 0, maxSecurity: 10 },
+                { name: "屋顶", security: 0, maxSecurity: 15 }
+            ]
+        };
+
+        // 安全屋类型和属性
+        const safehouses = {
+            apartment: {
+                name: "市中心公寓",
+                description: "位于人口密集区，采购方便但防御困难，邻居可能注意到你的准备活动。",
+                securityBonus: 0,
+                exposureRisk: 15,
+                initialText: "你选择了市中心的公寓。采购物资很方便，但人多眼杂，需要格外小心。"
+            },
+            suburban: {
+                name: "郊区独栋房",
+                description: "空间较大易于防御，采购距离适中，邻居较少但仍有暴露风险。",
+                securityBonus: 10,
+                exposureRisk: 10,
+                initialText: "你选择了郊区的独栋房。有足够的空间存储物资和加固防御，相对平衡的选择。"
+            },
+            rural: {
+                name: "乡下老宅",
+                description: "偏远隐蔽安全性高，但采购困难，需要长途运输物资。",
+                securityBonus: 20,
+                exposureRisk: 5,
+                initialText: "你选择了乡下的老宅。这里非常隐蔽，但去采购物资需要花费更多时间和精力。"
+            }
+        };
+
+        // 巨厚热搜数据
+        const weiboHotSearch = [
+            { title: "明星演唱会门票秒光", heat: 2200000, tag: "爆" },
+            { title: "新电影上映首日票房破亿", heat: 1800000, tag: "爆" },
+            { title: "网红餐厅排队超3小时", heat: 1600000, tag: "热" },
+            { title: "假期旅游人次创新高", heat: 1450000, tag: "热" },
+            { title: "电商大促即将开始", heat: 1300000, tag: "热" }
+        ];
+
+        // 超市突发事件
+        const supermarketEvents = [
+            {
+                title: "食物保存选择",
+                message: "你想买更利于保存的食物，以下三个你应该选择哪个？",
+                options: [
+                    { text: "罐头食品", effect: () => {
+                        gameState.food += 5;
+                        addEvent("你选择了罐头食品，这是长期保存的最佳选择。额外获得5食物。");
+                    } },
+                    { text: "新鲜水果", effect: () => {
+                        gameState.exposure += 5;
+                        addEvent("新鲜水果不易保存，但你还是买了一些。暴露度增加了。");
+                    } },
+                    { text: "冷冻食品", effect: () => {
+                        gameState.food += 3;
+                        gameState.exposure += 3;
+                        addEvent("冷冻食品需要冷藏设备，你买了一些但暴露度增加了。额外获得3食物。");
+                    } }
+                ]
+            },
+            {
+                title: "水源储备选择",
+                message: "考虑到后期可能的水源污染，你应该选择哪种饮用水？",
+                options: [
+                    { text: "瓶装矿泉水", effect: () => {
+                        gameState.water += 8;
+                        addEvent("你选择了瓶装矿泉水，这是最安全的选择。额外获得8水。");
+                    } },
+                    { text: "桶装水", effect: () => {
+                        gameState.water += 5;
+                        gameState.exposure += 3;
+                        addEvent("桶装水需要储存空间，你买了一些但暴露度增加了。额外获得5水。");
+                    } },
+                    { text: "净水片", effect: () => {
+                        gameState.water += 3;
+                        gameState.medicine += 2;
+                        addEvent("你选择了净水片，可以净化水源但需要额外步骤。额外获得3水和2药品。");
+                    } }
+                ]
+            },
+            {
+                title: "高热量食物选择",
+                message: "你想买一些高热量食物以备不时之需，以下哪个最合适？",
+                options: [
+                    { text: "能量棒", effect: () => {
+                        gameState.food += 6;
+                        addEvent("你选择了能量棒，体积小热量高。额外获得6食物。");
+                    } },
+                    { text: "巧克力", effect: () => {
+                        gameState.food += 4;
+                        addEvent("巧克力热量高但易融化。额外获得4食物。");
+                    } },
+                    { text: "坚果", effect: () => {
+                        gameState.food += 5;
+                        addEvent("坚果营养丰富但需要密封保存。额外获得5食物。");
+                    } }
+                ]
+            }
+        ];
+
+        // 药店健康知识考核
+        const pharmacyEvents = [
+            {
+                title: "药品选择",
+                message: "考虑到后期很有可能的水源污染，你应该选择什么药品防止问题出现？",
+                options: [
+                    { text: "抗生素", effect: () => {
+                        gameState.medicine += 5;
+                        addEvent("你选择了抗生素，可以有效预防水源污染引起的感染。额外获得5药品。");
+                    } },
+                    { text: "止痛药", effect: () => {
+                        gameState.medicine += 3;
+                        addEvent("你选择了止痛药，但对水源污染引起的疾病预防效果有限。额外获得3药品。");
+                    } },
+                    { text: "维生素", effect: () => {
+                        gameState.medicine += 2;
+                        addEvent("你选择了维生素，可以增强免疫力但对水源污染无直接预防作用。额外获得2药品。");
+                    } }
+                ]
+            },
+            {
+                title: "伤口处理选择",
+                message: "考虑到可能的外伤，你应该准备哪种消毒用品？",
+                options: [
+                    { text: "碘伏", effect: () => {
+                        gameState.medicine += 4;
+                        addEvent("你选择了碘伏，消毒效果好且不易过敏。额外获得4药品。");
+                    } },
+                    { text: "酒精", effect: () => {
+                        gameState.medicine += 3;
+                        addEvent("你选择了酒精，消毒效果好但可能引起疼痛。额外获得3药品。");
+                    } },
+                    { text: "双氧水", effect: () => {
+                        gameState.medicine += 2;
+                        addEvent("你选择了双氧水，消毒效果好但可能损伤组织。额外获得2药品。");
+                    } }
+                ]
+            },
+            {
+                title: "慢性病药品准备",
+                message: "如果你有慢性病需要长期服药，应该优先准备什么？",
+                options: [
+                    { text: "3个月常用药", effect: () => {
+                        gameState.medicine += 8;
+                        addEvent("你准备了3个月的常用药，确保长期需求。额外获得8药品。");
+                    } },
+                    { text: "1个月常用药", effect: () => {
+                        gameState.medicine += 4;
+                        addEvent("你准备了1个月的常用药，但可能不够长期使用。额外获得4药品。");
+                    } },
+                    { text: "应急替代药", effect: () => {
+                        gameState.medicine += 3;
+                        addEvent("你准备了应急替代药，但效果可能不如专用药。额外获得3药品。");
+                    } }
+                ]
+            }
+        ];
+
+        // 行动定义
+        const actions = {
+            supermarket: {
+                cost: 1,
+                effect: () => {
+                    const foodGain = 10 + (gameState.parentsHelping ? 5 : 0);
+                    const waterGain = 8 + (gameState.parentsHelping ? 4 : 0);
+                    gameState.food += foodGain;
+                    gameState.water += waterGain;
+                    gameState.exposure += gameState.safehouse.exposureRisk;
+                    
+                    addEvent(`你去了超市采购。获得${foodGain}食物和${waterGain}水。`);
+                    
+                    // 超市采购可能触发突发事件
+                    if (Math.random() < 0.4) {
+                        triggerSupermarketEvent();
+                    }
+                }
+            },
+            hardware: {
+                cost: 1,
+                effect: () => {
+                    const toolsGain = 12 + (gameState.parentsHelping ? 4 : 0);
+                    gameState.tools += toolsGain;
+                    gameState.exposure += gameState.safehouse.exposureRisk - 2;
+                    
+                    addEvent(`你去了五金店购买工具和加固材料。获得${toolsGain}工具。`);
+                    
+                    if (Math.random() < 0.25) {
+                        triggerRandomEvent();
+                    }
+                }
+            },
+            pharmacy: {
+                cost: 1,
+                effect: () => {
+                    const medicineGain = 8 + (gameState.parentsHelping ? 3 : 0);
+                    gameState.medicine += medicineGain;
+                    gameState.exposure += gameState.safehouse.exposureRisk;
+                    
+                    addEvent(`你去了药店采购医疗用品。获得${medicineGain}药品。`);
+                    
+                    // 药店采购可能触发健康知识考核
+                    if (Math.random() < 0.35) {
+                        triggerPharmacyEvent();
+                    }
+                }
+            },
+            fortify: {
+                cost: 2,
+                effect: () => {
+                    // 加固需要消耗工具
+                    if (gameState.tools < 5) {
+                        addEvent("工具不足，无法进行加固！至少需要5个工具。");
+                        return;
+                    }
+                    
+                    gameState.tools -= 5;
+                    
+                    // 随机选择一个房间进行加固
+                    const availableRooms = gameState.houseRooms.filter(room => room.security < room.maxSecurity);
+                    if (availableRooms.length > 0) {
+                        const randomRoom = availableRooms[Math.floor(Math.random() * availableRooms.length)];
+                        let securityGain = 5 + Math.floor(gameState.tools / 10);
+                        
+                        // 父母协助增加加固效果
+                        if (gameState.parentsHelping) {
+                            securityGain += 3;
+                            addEvent("父母协助你进行加固工作。");
+                        }
+                        
+                        randomRoom.security = Math.min(randomRoom.maxSecurity, randomRoom.security + securityGain);
+                        
+                        // 计算总安全值
+                        gameState.security = gameState.houseRooms.reduce((total, room) => total + room.security, 0);
+                        
+                        addEvent(`你加固了${randomRoom.name}，消耗5个工具。安全等级提高了${securityGain}。`);
+                        updateHouseLayout();
+                    } else {
+                        addEvent("所有房间已经加固到最大等级，无需进一步加固。");
+                    }
+                }
+            },
+            scavenge: {
+                cost: 1,
+                effect: () => {
+                    // 高风险高回报 - 先触发挑战事件
+                    triggerScavengeChallenge();
+                }
+            },
+            rest: {
+                cost: 1,
+                effect: () => {
+                    gameState.exposure = Math.max(0, gameState.exposure - 15);
+                    addEvent("你决定低调一天，减少外出活动。暴露度降低了。");
+                }
+            }
+        };
+
+        // 随机事件系统
+        const randomEvents = [
+            {
+                title: "邻居的好奇",
+                condition: () => gameState.exposure > 30,
+                message: "有邻居来敲门，询问你为什么买这么多物资。你怎么回应？",
+                options: [
+                    { text: "谎称要开派对", effect: () => { gameState.exposure += 5; addEvent("你谎称要开派对，邻居似乎半信半疑。"); } },
+                    { text: "保持沉默不回应", effect: () => { gameState.exposure += 10; addEvent("你选择不回应，邻居更加怀疑了。"); } },
+                    { text: "分享部分真相", effect: () => { 
+                        gameState.exposure += 15;
+                        addEvent("你试图解释但说得不清楚，邻居认为你疯了。");
+                    } }
+                ]
+            },
+            {
+                title: "物资运输困境",
+                condition: () => gameState.food > 20 || gameState.water > 20,
+                message: "你采购的大量物资需要运回安全屋，但运输过程可能引起注意。你选择？",
+                options: [
+                    { text: "一次性运完", effect: () => { gameState.exposure += 15; addEvent("你一次性运完所有物资，引起了多人注意。"); } },
+                    { text: "分多次运输", effect: () => { gameState.exposure += 5; gameState.actionPoints -= 1; addEvent("你分多次运输，减少了注意但消耗了更多时间。"); } },
+                    { text: "夜间运输", effect: () => { 
+                        if (gameState.safehouse.type === "apartment") {
+                            gameState.exposure += 10;
+                            addEvent("夜间运输在公寓楼里反而更引人注目。");
+                        } else {
+                            gameState.exposure += 3;
+                            addEvent("夜间运输相对隐蔽，减少了暴露风险。");
+                        }
+                    } }
+                ]
+            },
+            {
+                title: "父母的惊喜加入",
+                condition: () => gameState.parentsMayArrive && !gameState.parentsHelping && gameState.day > 3,
+                message: "门铃突然响起。你谨慎地透过猫眼看去，惊讶地发现父母站在门外，带着大包小包的物资。\"孩子，我们错了...从新闻上看到那些消息，我们相信你了！\"",
+                options: [
+                    { text: "欢迎他们进来", effect: () => { 
+                        gameState.parentsHelping = true;
+                        gameState.food += 15;
+                        gameState.water += 15;
+                        gameState.tools += 8;
+                        gameState.medicine += 10;
+                        addEvent("父母带来了大量物资和帮助！你们拥抱在一起，你知道现在不再孤单了。");
+                    } },
+                    { text: "让他们去更安全的地方", effect: () => {
+                        gameState.food += 10;
+                        gameState.water += 10;
+                        addEvent("你建议父母去乡下的亲戚家，那里更安全。他们留下了部分物资，你们含泪告别。");
+                    } }
+                ]
+            }
+        ];
+
+        // 物资搜集挑战
+        const scavengeChallenges = [
+            {
+                title: "废弃仓库探索",
+                message: "你发现了一个废弃仓库，可能有很多物资，但入口被锁住了。你选择？",
+                options: [
+                    { text: "强行撬锁", effect: () => {
+                        if (gameState.tools > 15) {
+                            const bonus = Math.floor(Math.random() * 15) + 10;
+                            gameState.food += bonus;
+                            gameState.water += bonus;
+                            gameState.tools -= 5;
+                            addEvent(`你成功撬锁进入仓库，找到了${bonus}单位物资！`);
+                        } else {
+                            gameState.exposure += 10;
+                            gameState.tools -= 3;
+                            addEvent("你试图撬锁但工具不足，失败了并引起了注意。");
+                        }
+                    } },
+                    { text: "寻找其他入口", effect: () => {
+                        gameState.actionPoints -= 1;
+                        const bonus = Math.floor(Math.random() * 8) + 5;
+                        gameState.food += bonus;
+                        gameState.water += bonus;
+                        addEvent(`你找到了另一个入口，获得了${bonus}单位物资，但花费了额外时间。`);
+                    } },
+                    { text: "放弃离开", effect: () => {
+                        gameState.exposure -= 5;
+                        addEvent("你决定放弃探索，安全第一。");
+                    } }
+                ]
+            }
+        ];
+
+        // 游戏功能函数
+        function addEvent(text) {
+            const eventLog = document.getElementById('event-log');
+            const eventElement = document.createElement('div');
+            eventElement.className = 'event';
+            eventElement.textContent = text;
+            eventLog.appendChild(eventElement);
+            eventLog.scrollTop = eventLog.scrollHeight;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function resetGame() {
+            // 重置所有游戏状态
+            gameState.day = 1;
+            gameState.actionPoints = 7;
+            gameState.safehouse = null;
+            gameState.informedParents = false;
+            gameState.parentsHelping = false;
+            gameState.parentsMayArrive = false;
+            gameState.food = 0;
+            gameState.water = 0;
+            gameState.medicine = 0;
+            gameState.tools = 0;
+            gameState.security = 0;
+            gameState.exposure = 0;
+            gameState.safehouseExposed = false;
+            gameState.events = [];
+            gameState.actionsTaken = [];
+            
+            // 重置房屋安全状态
+            gameState.houseRooms.forEach(room => {
+                room.security = 0;
+            });
+            
+            // 清空事件日志
+            const eventLog = document.getElementById('event-log');
+            eventLog.innerHTML = '';
+            addEvent("游戏开始！距离丧尸爆发还剩7天。");
+            
+            // 更新微博热搜
+            updateWeiboHotSearch();
+        }
+
+        function selectSafehouse(type) {
+            gameState.safehouse = { ...safehouses[type], type };
+            addEvent(gameState.safehouse.initialText);
+            showScreen('parents-screen');
+        }
+
+        function informParents(inform) {
+            gameState.informedParents = inform;
+            if (inform) {
+                // 70%概率说服父母
+                gameState.parentsHelping = Math.random() < 0.7;
+                if (gameState.parentsHelping) {
+                    addEvent("你成功说服父母前来帮忙。他们带来了一些初始物资和经验。");
+                    gameState.food += 10;
+                    gameState.water += 10;
+                    gameState.tools += 5;
+                } else {
+                    addEvent("你试图说服父母但失败了，他们认为你疯了。你只能独自准备。");
+                    gameState.exposure += 10;
+                    // 设置父母可能后期加入
+                    gameState.parentsMayArrive = Math.random() < 0.6;
+                }
+            } else {
+                addEvent("你决定不告知父母，独自承担这个重任。");
+            }
+            initializeGame();
+        }
+
+        function initializeGame() {
+            updateStats();
+            updateWeiboHotSearch();
+            updateHouseLayout();
+            showScreen('game-screen');
+        }
+
+        function updateStats() {
+            document.getElementById('current-day').textContent = gameState.day;
+            document.getElementById('action-points').textContent = gameState.actionPoints;
+            document.getElementById('food-count').textContent = gameState.food;
+            document.getElementById('water-count').textContent = gameState.water;
+            document.getElementById('medicine-count').textContent = gameState.medicine;
+            document.getElementById('tools-count').textContent = gameState.tools;
+            document.getElementById('security-level').textContent = gameState.security;
+            document.getElementById('exposure-level').textContent = gameState.exposure;
+            
+            // 更新资源状态
+            updateResourceStatus('food', gameState.food, 30, 50);
+            updateResourceStatus('water', gameState.water, 25, 40);
+            updateResourceStatus('medicine', gameState.medicine, 20, 30);
+            updateResourceStatus('tools', gameState.tools, 15, 25);
+            updateResourceStatus('security', gameState.security, 80, 100);
+        }
+
+        function updateResourceStatus(resource, value, goodThreshold, excellentThreshold) {
+            const statusElement = document.getElementById(`${resource}-status`);
+            if (value < goodThreshold) {
+                statusElement.textContent = "";
+            } else if (value < excellentThreshold) {
+                statusElement.textContent = "(充足)";
+                statusElement.style.color = "#0f0";
+            } else {
+                statusElement.textContent = "(充裕)";
+                statusElement.style.color = "#ff0";
+            }
+        }
+
+        function updateWeiboHotSearch() {
+            const weiboContainer = document.getElementById('weibo-hot');
+            weiboContainer.innerHTML = '';
+            
+            // 根据游戏进度调整热搜内容
+            const hotSearchCopy = JSON.parse(JSON.stringify(weiboHotSearch));
+            
+            // 根据天数更新热搜内容
+            if (gameState.day > 3) {
+                hotSearchCopy[0].title = "多地出现不明暴力事件";
+                hotSearchCopy[0].heat = 2200000;
+                hotSearchCopy[1].title = "专家称暴力事件或与新型病毒有关";
+                hotSearchCopy[1].heat = 1800000;
+            }
+            if (gameState.day > 5) {
+                hotSearchCopy[0].title = "病毒大规模爆发，政府发布紧急状态";
+                hotSearchCopy[0].heat = 5000000;
+                hotSearchCopy[1].title = "超市出现抢购潮，物资短缺";
+                hotSearchCopy[1].heat = 3500000;
+            }
+            
+            hotSearchCopy.forEach((item, index) => {
+                const hotItem = document.createElement('div');
+                hotItem.className = 'hot-item';
+                hotItem.innerHTML = `
+                    <span>${index + 1}. ${item.title}</span>
+                    <span class="hot-tag tag-${item.tag === '爆' ? 'boil' : item.tag === '热' ? 'hot' : 'new'}">${item.tag}</span>
+                    <span style="float:right;color:#999;">${formatNumber(item.heat)}</span>
+                `;
+                weiboContainer.appendChild(hotItem);
+            });
+        }
+
+        function formatNumber(num) {
+            if (num >= 10000) {
+                return (num / 10000).toFixed(1) + '万';
+            }
+            return num;
+        }
+
+        function updateHouseLayout() {
+            const layoutContainer = document.getElementById('house-layout');
+            layoutContainer.innerHTML = '';
+            
+            gameState.houseRooms.forEach(room => {
+                const roomElement = document.createElement('div');
+                roomElement.className = 'room';
+                if (room.security > 0) {
+                    roomElement.classList.add(room.security === room.maxSecurity ? 'room-fortified' : 'room-barricaded');
+                }
+                
+                const securityPercent = Math.floor((room.security / room.maxSecurity) * 100);
+                roomElement.innerHTML = `
+                    <div class="room-name">${room.name}</div>
+                    <div class="room-status">${securityPercent}%</div>
+                `;
+                
+                layoutContainer.appendChild(roomElement);
+            });
+        }
+
+        function showPopup(title, message, options = null) {
+            const popupContainer = document.getElementById('popup-container');
+            const popupContent = document.getElementById('popup-content');
+            const popupOptions = document.getElementById('popup-options');
+            const confirmBtn = document.getElementById('popup-confirm');
+            const overlay = document.getElementById('popup-overlay');
+            
+            popupContent.innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+            `;
+            
+            if (options && options.length > 0) {
+                popupOptions.innerHTML = '';
+                options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option.text;
+                    button.onclick = () => {
+                        option.effect();
+                        hidePopup();
+                        updateStats();
+                    };
+                    popupOptions.appendChild(button);
+                });
+                
+                popupOptions.style.display = 'flex';
+                confirmBtn.style.display = 'none';
+            } else {
+                popupOptions.style.display = 'none';
+                confirmBtn.style.display = 'inline-block';
+                confirmBtn.onclick = hidePopup;
+            }
+            
+            popupContainer.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function hidePopup() {
+            document.getElementById('popup-container').style.display = 'none';
+            document.getElementById('popup-overlay').style.display = 'none';
+        }
+
+        function triggerRandomEvent() {
+            const availableEvents = randomEvents.filter(event => event.condition());
+            if (availableEvents.length > 0) {
+                const event = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+                showPopup(event.title, event.message, event.options);
+            }
+        }
+
+        function triggerSupermarketEvent() {
+            const event = supermarketEvents[Math.floor(Math.random() * supermarketEvents.length)];
+            showPopup(event.title, event.message, event.options);
+        }
+
+        function triggerPharmacyEvent() {
+            const event = pharmacyEvents[Math.floor(Math.random() * pharmacyEvents.length)];
+            showPopup(event.title, event.message, event.options);
+        }
+
+        function triggerScavengeChallenge() {
+            const challenge = scavengeChallenges[Math.floor(Math.random() * scavengeChallenges.length)];
+            showPopup(challenge.title, challenge.message, challenge.options);
+        }
+
+        function takeAction(action) {
+            if (gameState.actionPoints < actions[action].cost) {
+                addEvent("行动点不足！");
+                return;
+            }
+
+            gameState.actionPoints -= actions[action].cost;
+            gameState.actionsTaken.push(action);
+            
+            actions[action].effect();
+            updateStats();
+            
+            // 检查暴露度危险
+            if (gameState.exposure >= 70) {
+                addEvent("警告：你的行为引起了广泛注意，当局可能开始调查你！");
+            }
+            
+            // 检查行动点是否用完
+            if (gameState.actionPoints === 0) {
+                setTimeout(nextDay, 1500);
+            }
+        }
+
+        function nextDay() {
+            gameState.day++;
+            gameState.actionPoints = 7;
+            
+            // 每日暴露度自然衰减
+            gameState.exposure = Math.max(0, gameState.exposure - 5);
+            
+            if (gameState.day > 7) {
+                endGame();
+                return;
+            }
+            
+            addEvent(`第${gameState.day}天开始。距离丧尸爆发还剩${8 - gameState.day}天。`);
+            
+            // 根据天数添加特殊事件
+            if (gameState.day === 3) {
+                addEvent("新闻开始报道不明原因的暴力事件，但政府称之为孤立事件。");
+            } else if (gameState.day === 5) {
+                addEvent("网络上出现更多关于'疯狂人群'的视频，有些人开始警惕。");
+            } else if (gameState.day === 6) {
+                addEvent("官方发布警告，建议居民留在室内，超市出现抢购潮。");
+            } else if (gameState.day === 7) {
+                addEvent("最后一天！远处传来警报声和尖叫声，爆发已经开始了...");
+            }
+            
+            // 父母可能后期加入
+            if (gameState.parentsMayArrive && !gameState.parentsHelping && gameState.day > 3 && Math.random() < 0.3) {
+                triggerRandomEvent();
+            }
+            
+            updateStats();
+            updateWeiboHotSearch();
+        }
+
+        function endGame() {
+            const score = calculateScore();
+            const ending = getEnding(score);
+            
+            document.getElementById('ending-content').innerHTML = `
+                <h3>${ending.title}</h3>
+                <p>${ending.description}</p>
+                <p><strong>结局剧情：</strong> ${ending.story}</p>
+                <div class="stats">
+                    <div class="stat-item">安全屋: ${gameState.safehouse.name}</div>
+                    <div class="stat-item">父母协助: ${gameState.parentsHelping ? "是" : "否"}</div>
+                    <div class="stat-item">最终暴露度: ${gameState.exposure}</div>
+                    <div class="stat-item">物资储备: ${gameState.food + gameState.water + gameState.medicine}</div>
+                    <div class="stat-item">安全等级: ${gameState.security}</div>
+                </div>
+            `;
+            
+            showScreen('end-screen');
+        }
+
+        function calculateScore() {
+            let score = 0;
+            score += Math.min(30, gameState.food / 2);
+            score += Math.min(30, gameState.water / 2);
+            score += Math.min(20, gameState.medicine);
+            score += Math.min(25, gameState.security / 4); // 安全等级达到100才能获得满分
+            score -= gameState.exposure / 4;
+            
+            if (gameState.parentsHelping) score += 15;
+            
+            // 安全屋暴露严重扣分
+            if (gameState.safehouseExposed) {
+                score -= 30;
+                addEvent("<span class='danger'>警告：你的安全屋位置已暴露，生存几率大幅降低！</span>");
+            }
+            
+            return Math.max(0, Math.min(100, score));
+        }
+
+        function getEnding(score) {
+            // 安全屋暴露的坏结局
+            if (gameState.safehouseExposed && score < 60) {
+                return {
+                    title: "安全屋暴露 - 绝望终结",
+                    description: "你的安全屋位置已暴露，丧尸直接找到了你的藏身之处。",
+                    story: "当第一波丧尸潮来袭时，你没有得到任何预警。它们直接冲向你的安全屋，仿佛早就知道你的位置。门窗在疯狂的撞击下迅速崩溃，你甚至没有时间拿起武器。最后的时刻，你意识到在搜寻物资时留下的踪迹导致了这一切。安全屋不再安全，它成了你的葬身之地。"
+                };
+            }
+            
+            if (score >= 90) {
+                return {
+                    title: "完美准备 - 生存大师",
+                    description: "你的准备无懈可击。安全屋固若金汤，物资充裕，知识完备。",
+                    story: "当第一波丧尸潮来袭时，你安然待在加固的安全屋内，透过监控观察外面的混乱。你的准备如此充分，甚至有能力帮助隔壁楼的幸存者。一周后，军方开始清理行动，他们惊讶地发现你是少数不需要救援的幸存者。你不仅生存下来，还成为了新社区的领导者。"
+                };
+            } else if (score >= 70) {
+                return {
+                    title: "充分准备 - 稳健生存者",
+                    description: "你的准备相当充分。有足够的资源和安全的庇护所。",
+                    story: "丧尸爆发初期，你紧闭门窗，启动所有安全措施。虽然听到外面的尖叫声和撞击声让你心惊胆战，但你的安全屋经受住了考验。几周后，食物开始减少，但你掌握的信息让你知道何时可以安全外出搜寻物资。你活下来了，但前方的路依然漫长。"
+                };
+            } else if (score >= 50) {
+                return {
+                    title: "基本准备 - 艰难求生",
+                    description: "你做了一些准备，但存在明显短板。生存将充满挑战。",
+                    story: "当丧尸开始出现在街道上时，你意识到自己的准备还不够充分。安全屋的门窗在撞击下开始松动，食物储备也只够几周。你不得不冒险外出寻找资源，每次都是生死考验。你活下来了，但付出了惨重代价——失去了邻居和朋友，每天都在为基本生存而挣扎。"
+                };
+            } else if (score >= 30) {
+                return {
+                    title: "准备不足 - 绝望挣扎",
+                    description: "你的准备严重不足。资源匮乏，安全措施薄弱。",
+                    story: "丧尸爆发后的第一晚，你的门就被撞开了。你勉强逃脱，但失去了大部分物资。现在你躲在阁楼里，饥肠辘辘，听着楼下丧尸的脚步声。你知道自己可能活不了多久了，唯一的希望是军方尽快到来，或者找到其他幸存者帮助。每一天都是绝望的挣扎。"
+                };
+            } else {
+                return {
+                    title: "毫无准备 - 末日降临",
+                    description: "你几乎没有任何准备。面对丧尸爆发，生存机会极其渺茫。",
+                    story: "当第一个丧尸敲打你的门时，你才意识到事情的严重性。你没有任何准备，没有食物，没有水，没有安全措施。你试图用家具堵门，但为时已晚。现在你被困在浴室里，外面是越来越多的丧尸。最后的子弹只剩下两颗——一颗给丧尸，一颗留给自己。末日已经降临。"
+                };
+            }
+        }
+
+        // 初始化巨厚热搜
+        updateWeiboHotSearch();
+    </script>
+</body>
+</html>
